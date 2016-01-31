@@ -1,0 +1,56 @@
+---
+title: "Prediction Modeling on the Correct Weight Lifting Exercise"
+author: "ythie"
+date: "January 30, 2016"
+output: html_document
+---
+####Summary
+This is a practice to use accelerometer data of six participants who do weight lifting exercise and predict how well their performance on a particular activity. The data come from belt, forearm, arm and dumb bell. A prediction model based on random forest method is used. A preprocessing method from principle component analysis is used to reduce number of predictors. Cross validation on the data is done to address overfitting. The resulting prediction model is used to predict outcome of twenty sets of accelerometer data to check its accuracy.
+
+Outcome of this model consist of five classes: A through E. A = Exact weight lifting execution, B = throwing both elbows to the front, C = lifting dumbbell halfway, D = lowering dumbbell halfway, E = throwing both hips to the front.
+
+####Source
+Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013
+
+####Data Exploratory
+Training dataset is split into two dataset: 75% for training prediction model, 25% for validating prediction model. A separate twenty dataset is used to test outcome accuracy. Both datasets are reduced from 160 variables to 53 variables (52 predictors and 1 class) by throwing out columns with NA and empty values.
+```{r}
+library(caret)
+library(YaleToolkit)
+#Reading training data and 20 set testing data.
+#Assumption: both files in the same working directory as the markdown file.
+tr <- read.csv('pml-training.csv', header = T)
+ts <- read.csv('pml-testing.csv', header = T)
+whatis(tr)
+whatis(ts)
+
+#Splitting training data to 75:25 percent training and validation dataset
+intrain <- createDataPartition(y = tr$classe, p = 0.75, list = F)
+training <- tr[intrain,]
+validate <- tr[-intrain,]
+
+#Take out columns with NA and empty values
+training <- training[colSums(is.na(training)) < 100]
+training <- training[colSums(training != '') == nrow(training)]
+training <- training[,8:60]
+validate <- validate[colSums(is.na(validate)) < 100]
+validate <- validate[colSums(validate != '') == nrow(validate)]
+validate <- validate[,8:60]
+
+#Take out columns with NA values
+testing <- ts[colSums(is.na(ts)) < 10]
+testing <- testing[,8:60]
+```
+A prediction model is built from 75% training data. Preprocessing by 'Principle Component Analysis' is performed to take out predictors with strong correlation. 'Random Forest' classifier is chosen because of large number of predictors, built in cross validation and out of sample error rate, and proven classification method so far.
+
+After a prediction model is obtained, confusion matrix is used to test its accuracy with validation test. Then, the prediction model is used to predict 20 sets of a separate testing data and used to answer the last quiz in 'Practical Machine Learning' Coursera class.
+```{r, message = F, warning = F}
+set.seed(33833)
+modfit <- train(training$classe ~ ., method = 'rf', preProcess = 'pca', data = training, prox = T)
+modfit
+summary(modfit)
+confusionMatrix(validate$classe, predict(modfit, validate))
+
+#Test prediction model accuracy on 20 sets of separate testing dataset
+predict(modfit, newdata = testing[,-53])
+```
