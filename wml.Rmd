@@ -4,6 +4,8 @@ author: "ythie"
 date: "January 30, 2016"
 output: html_document
 ---
+###Note
+I was able to generate prediction model using R Studio console and answered the last quiz, correctly. But, I was not able to do it with R markdown and knit HTML. The program just run forever.
 ####Summary
 This is a practice to use accelerometer data of six participants who do weight lifting exercise and predict how well their performance on a particular activity. The data come from belt, forearm, arm and dumb bell. A prediction model based on random forest method is used. A preprocessing method from principle component analysis is used to reduce number of predictors. Cross validation on the data is done to address overfitting. The resulting prediction model is used to predict outcome of twenty sets of accelerometer data to check its accuracy.
 
@@ -13,10 +15,11 @@ Outcome of this model consist of five classes: A through E. A = Exact weight lif
 Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013
 
 ####Data Exploratory
-Training dataset is split into two dataset: 75% for training prediction model, 25% for validating prediction model. A separate twenty dataset is used to test outcome accuracy. Both datasets are reduced from 160 variables to 53 variables (52 predictors and 1 class) by throwing out columns with NA and empty values.
+Training dataset is split into two dataset: 50% for training prediction model, 50% for validating prediction model. A separate twenty dataset is used to test outcome accuracy. Both datasets are reduced from 160 variables to 53 variables (52 predictors and 1 class) by throwing out columns with NA and empty values.
 ```{r}
 library(caret)
 library(YaleToolkit)
+library(randomForest)
 #Reading training data and 20 set testing data.
 #Assumption: both files in the same working directory as the markdown file.
 tr <- read.csv('pml-training.csv', header = T)
@@ -24,8 +27,8 @@ ts <- read.csv('pml-testing.csv', header = T)
 whatis(tr)
 whatis(ts)
 
-#Splitting training data to 75:25 percent training and validation dataset
-intrain <- createDataPartition(y = tr$classe, p = 0.75, list = F)
+#Splitting training data to 50:50 percent training and validation dataset
+intrain <- createDataPartition(y = tr$classe, p = 0.5, list = F)
 training <- tr[intrain,]
 validate <- tr[-intrain,]
 
